@@ -39,7 +39,6 @@ class InterkassaController extends Controller {
 
     public function actionInvoice() {
 
-        $session = Yii::$app->session;
         $model = new Invoice(); // модель счета фактуры, может называться как угодно, служит для работы с таблицей, в которой Вы храните счета фактуры или заказы или т.п. вещи
 
         $model->amount = сумма к оплате; // сумма к оплате которая приходит в контроллер каким либо реализуемым Вам способом
