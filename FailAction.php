@@ -17,7 +17,8 @@ class FailAction extends BaseAction {
             throw new BadRequestHttpException;
         } else {
 
-            return $this->callback($_REQUEST['ik_co_id'], $_REQUEST['ik_am'], $_REQUEST['ik_inv_st'], $_REQUEST['ik_pm_no']);
+            $merchant = Yii::$app->get($this->merchant);
+            return $this->callback($merchant, $_REQUEST['ik_co_id'], $_REQUEST['ik_am'], $_REQUEST['ik_inv_st'], $_REQUEST['ik_pm_no']);
         }
 
         throw new BadRequestHttpException;
