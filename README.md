@@ -83,32 +83,21 @@ class InterkassaController extends Controller {
         ];
     }
 
-    public function successCallback($ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no) {
+    public function successCallback($merchant, $ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no) {
 
-        $session = Yii::$app->session;
-        $intercassa = Yii::$app->get('interkassa');
         $model = $this->loadModel($ik_pm_no);
 
-        if ($intercassa->ik_co_id == $ik_co_id && $model->price == $ik_am) {
+        if ($merchant->ik_co_id == $ik_co_id && $model->price == $ik_am) {
 
-            if (Yii::$app->user->isGuest && $id = \common\models\User::createUser()) {
-
-                $user_id = $id;
-            } else {
-
-                $user_id = Yii::$app->user->identity->id;
-            }
-
-            $model->updateAttributes(['status' => Invoice::STATUS_SUCCESS, 'user_id' => $user_id]);
-            $session->set('invoice_id', $model->id);
+            $model->updateAttributes(['status' => Invoice::STATUS_SUCCESS]);
             return $this->redirect('/clients/success-pay/');
         } else {
 
-            throw new NotFoundHttpException('Что-то пошло не так. Если это уже не первый раз, свяжитесь с техподдержкой и мы обязательно Вам поможем.');
+            throw new NotFoundHttpException('Что-то пошло не так...');
         }
     }
 
-    public function resultCallback($ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no) {
+    public function resultCallback($merchant, $ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no) {
 
         switch ($ik_inv_st) {
             case 'new': return $this->loadModel($ik_pm_no)->updateAttributes(['status' => Invoice::STATUS_NEW]);
@@ -117,26 +106,24 @@ class InterkassaController extends Controller {
                 break;
             case 'process': return $this->loadModel($ik_pm_no)->updateAttributes(['status' => Invoice::STATUS_PROCESS]);
                 break;
-            case 'success': return $this->successCallback($ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no);
+            case 'success': return $this->successCallback($merchant, $ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no);
                 break;
             case 'canceled': return $this->loadModel($ik_pm_no)->updateAttributes(['status' => Invoice::STATUS_CANCELED]);
                 break;
-            case 'fail': return $this->failCallback($ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no);
+            case 'fail': return $this->failCallback($merchant, $ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no);
                 break;
         }
     }
 
-    public function failCallback($ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no) {
+    public function failCallback($merchant, $ik_co_id, $ik_am, $ik_inv_st, $ik_pm_no) {
         $model = $this->loadModel($ik_pm_no);
-        $session = Yii::$app->session;
-        $session->set('error_pay', 'yes');
 
         if ($model->status != Invoice::STATUS_FAIL && $model->status != Invoice::STATUS_SUCCESS) {
             $model->updateAttributes(['status' => Invoice::STATUS_FAIL]);
 
-            throw new NotFoundHttpException('При оплате произошла ошибка! Деньги не были списаны с вашего счета. Для повтроной попытки перейдите в <a href="/cart">корзину</a> и попробуйте оплатить снова');
+            throw new NotFoundHttpException('При оплате произошла ошибка!');
         } else {
-            throw new NotFoundHttpException('При оплате произошла ошибка! Деньги не были списаны с вашего счета. Для повтроной попытки перейдите в <a href="/cart">корзину</a> и попробуйте оплатить снова');
+            throw new NotFoundHttpException('При оплате произошла ошибка!');
         }
     }
 
